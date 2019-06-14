@@ -1,0 +1,176 @@
+{{define "head"}}
+<!-- <link rel="stylesheet" href="static/css/double_screen.css" type="text/css"> -->
+<style>
+    .selected {background: #41c69e;}
+</style>
+        
+{{end}}
+
+{{define "content"}}
+<div id ='CCU' >
+    <legend class="" >{{.Name}}</legend>
+    <br>
+    <div class="form-group">
+        <div class="row">    
+            <div class="input-group pl-3" style="width:500px">
+                <div class="input-group-btn search-panel">
+                    <div class="input-group date float-right" id="datetimepicker1" data-target-input="nearest">
+                        <input type="text" class="form-control datetimepicker-input" data-target="#datetimepicker1" />
+                        <div class="input-group-append" data-target="#datetimepicker1" data-toggle="datetimepicker">
+                            <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                        </div>
+                    </div>
+                 </div>     
+                <div class="input-group-append">
+                    <button class="btn btn-secondary" type="button" v-on:click="onSearch">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div div v-if="CheckData">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th v-for="key in db_columns" >
+                [[ key ]] 
+                <!-- <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'">
+                </span> -->
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="entry,index in db_datas">
+                <td v-for="key in db_columns">
+                        [[ entry[key] ]]
+                    <!-- [[ entry[key] ]] -->
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- <div v-if="CheckData" >
+            <input class="btn btn-primary float-right" value="ToExcel" v-on:click="onWriteExcel">
+            <input class="btn btn-success float-right" value="Save" v-on:click="onSave">
+    </div> -->
+    <br>
+    <!-- <span>선택함: [[ search_name ]]</span>
+    <br>
+    <span>[[ db_datas ]]</span> -->
+</div>    
+{{end}}
+
+{{define "script"}}
+
+<script type="text/javascript">
+    $(function () {
+        $('.datetimepicker').datetimepicker();
+        initDateTime();
+    });
+    function initDateTime(){
+        let cur_time =new Date();//.toISOString().slice(0,10);
+        cur_time.setDate(cur_time.getDate() );
+        var targetDate = cur_time.toISOString().slice(0,10);
+    
+        $('#datetimepicker1').datetimepicker('date', moment(targetDate, 'YYYY-MM-DD') );
+    }
+    
+    
+    
+    </script>
+<script> 
+    var cUserVm = new Vue({
+    delimiters: ['[[', ']]'],
+    el: '#CCU',
+    data: {
+        db_columns : []
+        ,db_datas :{}
+        ,data_ok : false
+    },
+    methods: {
+        onSearch:function(){
+            // if ( this.searchText === ''){
+            //     alert('Search User is Empty');
+            //     return;
+            // }
+            var selectedDate = $("#datetimepicker1").data("datetimepicker").date();
+            // console.log(selectedDate.format('YYYY-MM-DD'));            
+            // console.log(this.searchText);
+            // data_ok = false;
+            axios.post('/auth/ccu_search', { searchDate: selectedDate.format('YYYY-MM-DD')}).then(response => {
+                        data_ok = true;
+                        this.db_datas = JSON.parse(response.data.data);
+                        this.db_columns = JSON.parse(response.data.column);
+                    }, error => {
+                        alert(error.response.data);
+                        data_ok = false;
+                    });
+        },
+        onChange:function(line,lineIndex){
+            // v-on:change="onChange"
+            // console.log(line.UserNo,lineIndex);
+            // console.log(this.db_datas_back[lineIndex]);
+            let orgData = this.db_datas_back[lineIndex];
+            let findIndex = this.db_datas_org.findIndex(o => o.UserNo === orgData.UserNo);
+            console.log(findIndex);
+            if ( findIndex === -1) {
+                this.db_datas_org.push(this.db_datas_back[lineIndex]);
+            }
+        },
+        onSave:function(){
+            if ( confirm("save data ?") ){
+                axios.post('/auth/user_save', {data : this.db_datas , pre : this.db_datas_org}).then(response => {
+                        alert('data save success!');
+                        this.onSearch();
+                    }, error => {
+                        alert(error);
+                        this.db_datas_org = [];
+                    });
+            }
+        },
+        onWriteExcel:function(){
+            if ( confirm("to Write  Excel ?") ){
+                axios.post('/auth/data_toexcel', {type:"user" , data : this.db_datas , column : this.db_columns}).then(response => {
+                        // console.log(response.data);
+                        // alert('data save success!');
+                        // this.onSearch();
+                        let url = JSON.parse(response.data);
+                        // console.log(url.path);
+                        axios.get(url.path, {responseType: 'blob'}).then(response => {
+                            // console.log(response);
+                            let blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+                            let link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.target = '_self';
+                            let paths = url.path.split('/');
+
+                            link.download = paths[paths.length -1];
+                            link.click();                        
+                        }, error => {
+                            alert(error);
+                        });
+
+                    }, error => {
+                        alert(error);
+                    });
+            }
+        }
+    },
+    computed: {
+      CheckData() {
+        return this.db_columns.length > 0;
+      }
+    }
+    // ,
+    // watch:{
+    //     db_datas:function(newvalue,oldValue){
+    //         console.log(newvalue,oldValue)
+    //     },
+    //     deep: true
+    // }
+    })
+</script>
+{{end}}
+

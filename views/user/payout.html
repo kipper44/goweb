@@ -1,0 +1,176 @@
+{{define "head"}}
+
+<!-- <link rel="stylesheet" href="static/css/double_screen.css" type="text/css"> -->
+<style>
+.selected {background: #41c69e;}
+</style>
+        
+{{end}}
+
+{{define "content"}}
+<div id ='MailBox' >
+    <legend class="" >{{.Name}}</legend>
+    <br>
+    <div class="form-group">
+            <div class="row">    
+                    <div class="col-xs-8">
+                            {{include "user_search"}}
+                    </div>
+            </div>
+        </div>
+    <div>
+        <table class="table table-sm table-hover" id='user_tbl'>
+            <thead>
+            <tr>
+                <th v-for="key in db_columns" >
+                [[ key ]] 
+                </th>
+            </tr>
+            </thead>  
+            <tbody>
+                <tr v-for="(entry,index) in db_datas" v-on:click="rowToggle($event,entry,index)">
+                    <td v-for="key in db_columns">
+                        <div> [[ entry[key] ]] </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <br>
+    <div v-if="CheckData" >
+        <table class="table table-sm table-hover" id='detail'>
+                <thead>
+                <tr>
+                    <th v-for="key in db_columns_detail" >
+                    [[ key ]] 
+                    </th>
+                </tr>
+                </thead>  
+                <tbody>
+                    <!-- <tr v-for="(entry,index) in db_datas_detail" v-on:click="rowToggle($event,entry,index)" class="selected"> -->
+                    <tr v-for="(entry,index) in db_datas_detail" >
+                        <td v-for="key in db_columns_detail">
+                            <div v-if="key =='Deleted' "> 
+                                <p v-if="entry[key] !== null"></pv-if>Deleted</p>
+                            </div>
+                            <div v-else> [[ entry[key] ]] </div>
+            
+                            
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <input class="btn btn-primary float-right" value="ToExcel" v-on:click="onWriteExcel">
+    </div>
+    <br>
+    <!-- <span>선택함: [[ search_name ]]</span>
+    <br>
+    <span>[[ db_datas ]]</span> -->
+</div>    
+{{end}}
+
+{{define "script"}}
+<script> 
+
+    var rowColor ;
+    var cUserVm = new Vue({
+    delimiters: ['[[', ']]'],
+    el: '#MailBox',
+    data: {
+        search_name: 'Nickname'
+        ,searchText :''
+        ,db_columns : []
+        ,db_datas :{}
+        ,db_columns_detail:[]
+        ,db_datas_detail:{}
+    },
+    methods: {
+        rowToggle:function(event,entry,idex){
+            var tb = $(event.currentTarget).parent();
+            for (var i = 0; i < tb[0].childElementCount; i++) {
+                // console.log(tb[0].childNodes[i]);
+                $(tb[0].childNodes[i]).css('background', rowColor)
+            }
+            rowColor = $(event.currentTarget).css("background-color"); 
+            $(event.currentTarget).css('background', '#41c69e');
+            // console.log(entry['UserNo']);
+            axios.post('/auth/payout_detail', {user_no : entry['UserNo']}).then(response => {
+                        this.db_datas_detail = JSON.parse(response.data.data);
+                        this.db_columns_detail = JSON.parse(response.data.column);
+                        // console.log(response );
+                        // console.log(this.db_datas_detail);
+                    }, error => {
+                        console.log(error);
+                    });            
+        },
+        onSearch:function(){
+            if ( this.searchText === ''){
+                alert('Search User is Empty');
+                return;
+            }
+            // console.log(this.searchText);
+            axios.post('/auth/user_search', {view : 'PayOut',method : this.search_name, searchText: this.searchText}).then(response => {
+                        console.log(response);
+                        data_ok = true;
+                        this.db_datas = JSON.parse(response.data.data);
+                        this.db_columns = JSON.parse(response.data.column);
+                        // console.log(response ,data_ok);
+                        // console.log(this.db_datas);
+                        this.db_columns_detail = [];
+                        this.db_datas_detail = {};
+
+                    }).catch( error => {
+                        alert(error.response.data);
+                        // console.log(error.response.data);
+                    });
+        },
+        onChange:function(){
+            // console.log(this.search_name);
+        },
+        onSave:function(){
+            if ( confirm("save data ?") ){
+                axios.post('/auth/user_save', {data : this.db_datas}).then(response => {
+                        alert('data save success!');
+                        this.onSearch();
+                    }, error => {
+                        alert(error);
+                    });
+            }
+        },
+        onWriteExcel:function(){
+            if ( confirm("to Write  Excel ?") ){
+                JSONToCSVConvertor(this.db_datas, "PayOut", true);
+                return;
+                axios.post('/auth/data_toexcel', {type:"PayOut" , data : this.db_datas_detail , column : this.db_columns_detail}).then(response => {
+                        // console.log(response.data);
+                        let url = JSON.parse(response.data);
+                        // console.log(url.path);
+                        axios.get(url.path, {responseType: 'blob'}).then(response => {
+                            // console.log(response);
+                            let blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+                            let link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.target = '_self';
+                            let paths = url.path.split('/');
+
+                            link.download = paths[paths.length -1];
+                            link.click();                        
+                        }, error => {
+                            alert(error);
+                        });
+
+                    }, error => {
+                        alert(error);
+                    });
+            }
+        }
+    },
+    computed: {
+      CheckData() {
+        return this.db_columns_detail.length > 0;
+      }
+    }
+    })
+</script>
+{{end}}

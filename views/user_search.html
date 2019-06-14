@@ -1,0 +1,14 @@
+<div class="input-group pl-3" style="width:500px">
+    <div class="input-group-btn search-panel">
+        <select class="form-control" style="width:200px;" v-model="search_name" v-on:change="onChange">
+                <option >Nickname</option>
+                <option > UID</option>
+        </select>                
+    </div>
+    <input type="text" class="form-control" v-model="searchText" placeholder="Search User">
+    <div class="input-group-append">
+            <button class="btn btn-secondary" type="button" v-on:click="onSearch">
+              <i class="fa fa-search"></i>
+            </button>
+    </div>
+</div>

@@ -1,0 +1,52 @@
+<nav class="navbar" style="background: #7386D5">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">GM Tool - Winning Derby</a>
+        </div>
+        <ul class="nav navbar-nav navbar-right">
+          <form class="form-inline ">
+              <span class="form-control mr-sm-2" style="background: #7386D5;">{{.Admin}}</span>
+              <a href="/logout" class="btn btn-info" role="button">Logout</a>
+          </form>            
+        </ul>
+  </nav>    
+  <div class="wrapper mt-n5 mp-n5">
+    <nav id="sidebar">
+      <ul class="list-unstyled components">
+        <li class="active">
+        <a href="#UserSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle" id ="UserMenu">User</a>
+          <!-- <ul class="collapse list-unstyled open" id="UserSubmenu"> -->
+          <ul class="collapse show" id="UserSubmenu">
+            <li><a href="#" onclick="jumpUrl('/auth/user')">User</a></li>
+            <li><a href="#" onclick="jumpUrl('/auth/purchase')">Purchase</a></li>
+            <li><a href="#" onclick="jumpUrl('/auth/coin')">Coin</a></li>
+            <li><a href="#" onclick="jumpUrl('/auth/dia')">Dia</a></li>
+            <li><a href="#" onclick="jumpUrl('/auth/mileage')">Mileage</a></li>
+            <li><a href="#" onclick="jumpUrl('/auth/mailbox')">MailBox</a></li>
+            <li><a href="#" onclick="jumpUrl('/auth/payout')">PayOut</a></li>
+          </ul>
+        </li>
+      </ul><br>
+      <ul class="nav nav-pills nav-stacked">
+          <li class="active"><a href="#" onclick="jumpUrl('/auth/sendmail')">SendMail</a></li>
+      </ul><br>
+      <ul class="list-unstyled components">
+          <li class="active">
+          <a href="#AdminSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle" id ="UserMenu">Admin</a>
+            <ul class="collapse show" id="AdminSubmenu">
+              <li><a href="#" onclick="jumpUrl('/auth/admin')">Account</a></li>
+              <li><a href="#" onclick="jumpUrl('/auth/admin_log')">Log</a></li>
+            </ul>
+          </li>
+        </ul>
+        <ul class="list-unstyled components">
+          <li class="active">
+          <a href="#Statistics" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle" id ="UserMenu">Statistics</a>
+            <ul class="collapse show" id="Statistics">
+              <li><a href="#" onclick="jumpUrl('/auth/statistcs_dia')">Dia</a></li>
+              <li><a href="#" onclick="jumpUrl('/auth/statistcs_coin')">Coin</a></li>
+              <li><a href="#" onclick="jumpUrl('/auth/statistics_dau')">DAU&Revenue</a></li>
+              <li><a href="#" onclick="jumpUrl('/auth/statistics_ccu')">CCU</a></li>
+            </ul>
+          </li>
+        </ul>          
+    </nav>

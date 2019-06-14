@@ -1,0 +1,19 @@
+<script>
+        function jumpUrl(url_){
+          // location.href = url;
+          // $.get(url, function(data){
+            //   document.write(  data );
+          // });    
+      
+          $.ajax({
+                url:url_,
+                method:"get",
+                success:function(jData) {
+                  location.href = url_;
+                },
+                error:function(request,status,error){ 
+                    alert(request.responseText);
+                }
+            });    
+        }
+</script>

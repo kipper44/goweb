@@ -1,0 +1,294 @@
+{{define "head"}}
+<!-- <link rel="stylesheet" href="static/css/double_screen.css" type="text/css"> -->
+<style>
+    .selected {background: #41c69e;}
+</style>
+        
+{{end}}
+
+{{define "content"}}
+        
+<div id ='adminAccount' >
+    <legend class="" >{{.Name}}</legend>
+    <br>
+    <div class="row">
+        
+        <div class="col-sm-6">    
+            <P>Create Account</P>
+            <div class="row" >
+                <div class="col"><label class="mt-2 float-right" >ID :</label></div>
+                <div class="col">
+                    <input type="text" class="form-control float-left"  v-model:ref="input.ID" placeholder="ID">
+                </div>
+                <div class="col"></div>
+                <div class="col"></div>
+            </div>
+            <div class="row" >
+                <div class="col"><label class="mt-2 float-right" >Password :</label></div>
+                <div class="col">
+                    <input type="password" class="form-control float-left"  v-model:ref="input.Password" placeholder="Password">
+                </div>
+                <div class="col">
+                    <input type="password" class="form-control float-left"  v-model:ref="input.VerifyPassword" placeholder="Verify Password">
+                </div>
+                <div class="col"></div>
+            </div>
+            <div class="row" >
+                <div class="col"><label class="mt-2 float-right" >Name :</label></div>
+                <div class="col">
+                    <input type="text" class="form-control float-left"  v-model:ref="input.Name" placeholder="Name">
+                </div>
+                <div class="col"></div>
+                <div class="col"></div>
+            </div>
+            <div class="row" >
+                <div class="col"><label class="mt-2 float-right" >Authority :</label></div>
+                <div class="col"></div>
+                <div class="col"></div>
+                <div class="col"></div>
+            </div>      
+            
+            <div class="row ml-5 pl-5">
+                <table class="table table-bordered table-sm " >
+                    <thead>
+                    <tr>
+                        <th v-for="key in db_columns" class="text-center" >
+                        [[ key ]] 
+                        </th>
+                    </tr>
+                    </thead>  
+                    <tbody>
+                        <tr v-for="(entry,index) in db_datas" >
+                            <td v-for="key in db_columns" class="text-center">
+                                <div v-if="key =='Permit' "> 
+                                    <!-- <input type="checkbox" id="checkbox" v-model="entry[key]">
+                                    <label for="checkbox">[[ entry[key] ]]</label> -->
+                                    [[ key ]]
+                                    <label class="switch">
+                                            <input type="checkbox" class="primary" v-model="entry[key]">
+                                            <span class="slider round"></span>
+                                    </label>                                    
+                                </div>
+                                <div v-else> [[ entry[key] ]] </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="row" >
+                <div class="col"></div>
+                <div class="col"></div>
+                <div class="col">
+                    <button class="btn btn-success float-right" v-on:click="onApplyAccount">Apply</button>
+                </div>
+            </div>                
+        
+        </div>             
+        <div class="col-sm-6">   
+            <div class="row ml-5 pl-5">
+                <P>Admin Lists</P> 
+                <table class="table table-bordered table-sm table-hover" >
+                    <thead>
+                    <tr>
+                        <th v-for="key in admin_columns" class="text-center">
+                        [[ key ]] 
+                        </th>
+                    </tr>
+                    </thead>  
+                    <tbody>
+                        <!-- <tr v-for="(entry,index) in admin_list" v-on:click="rowToggle($event,entry,index)" > -->
+                        <tr v-for="(entry,index) in admin_list" >
+                            <td v-for="key in admin_columns" class="text-center">
+                                <div v-if="key=='Modify' "> 
+                                    <button class="btn btn-secondary btn-sm" v-on:click="modifyAdmin($event,entry)">[[ key ]]</button>
+                                </div>
+                                <div v-else> [[ entry[key] ]] </div>
+                            </td>
+                            <td><button class="btn btn-danger btn-sm" v-on:click="removeAdmin($event,entry)">X</button></td>
+
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+    </div>
+</div>
+
+</div>    
+{{end}}
+
+{{define "script"}}
+<script> 
+
+function type(obj){
+           return Object.prototype.toString.call(obj).slice(8, -1);
+        }
+    var jsonArray = [];
+    jsonArray.push({Menu: "User", Permit:false});
+    jsonArray.push({Menu: "Purchase", Permit:false});
+    jsonArray.push({Menu: "Coin", Permit:false});
+    jsonArray.push({Menu: "Dia", Permit:false});
+    jsonArray.push({Menu: "Mileage", Permit:false});
+    jsonArray.push({Menu: "MailBox", Permit:false});
+    jsonArray.push({Menu: "PayOut", Permit:false});
+    jsonArray.push({Menu: "Send Mail", Permit:false});
+    jsonArray.push({Menu: "Admin", Permit:false});
+    jsonArray.push({Menu: "Statistics_Dia", Permit:false});
+    jsonArray.push({Menu: "Statistics_Coin", Permit:false});
+    jsonArray.push({Menu: "Statistics_Dau", Permit:false});
+    jsonArray.push({Menu: "Statistics_CCU", Permit:false});
+
+    // console.log(jsonArray);    
+    var cUserVm = new Vue({
+    delimiters: ['[[', ']]'],
+    el: '#adminAccount',
+    data: {
+        input :{ID:'',Password:'',VerifyPassword:'',Name:''}
+        ,db_columns : ['Menu','Permit']
+        ,db_datas :{}
+        ,admin_columns : ['Account','Name','LastLogin','Modify']
+        ,admin_list :[]
+        ,modifyIndex : -1
+    },
+    created: function () {
+        this.db_datas = jsonArray;
+    },    
+    methods: {
+        SetPermition:function(obj){
+            Object.entries(jsonArray).forEach(([key, value]) => {
+                let retObj = obj.find(j => j.Menu == value.Menu);
+                if (undefined == retObj){
+                    obj[obj.length] = {Menu: value.Menu,Permit:false};
+                }
+            });
+        },
+        rowToggle:function(e,entry){
+            let accountId =  entry['Account'];
+            let searchIndex = this.admin_list.findIndex(x => x.Account == accountId);
+            if ( searchIndex >=  0 ){
+                // console.log(this.admin_list[searchIndex]);
+                let selectAdmin = this.admin_list[searchIndex];
+                // this.input = {ID:selectAdmin.Account,Password:selectAdmin.Password,VerifyPassword:selectAdmin.Password,Name:selectAdmin.Name};
+                this.db_datas =JSON.parse(selectAdmin.permition); 
+                this.SetPermition(this.db_datas)
+                // console.log(type(selectAdmin.permition) );
+            }
+        },
+        modifyAdmin:function(e,entry){
+            // let trRow = $(e.currentTarget).parents('tr');
+            // let tdNickName = $(trRow).children("td:nth-child(1)");
+            let accountId =  entry['Account'];
+            let searchIndex = this.admin_list.findIndex(x => x.Account == accountId);
+            if ( searchIndex >=  0 ){
+                // console.log(this.admin_list[searchIndex]);
+                let selectAdmin = this.admin_list[searchIndex];
+                this.input = {ID:selectAdmin.Account,Password:'',VerifyPassword:'',Name:selectAdmin.Name};
+                this.db_datas =JSON.parse(selectAdmin.Permition); 
+                console.log(this.db_datas);
+                this.SetPermition(this.db_datas)
+                this.modifyIndex = searchIndex;
+                // console.log(type(selectAdmin.permition) );
+            }
+            
+        },
+        removeAdmin:function(e,entry){
+            let accountId =  entry['Account'];
+            let searchIndex = this.admin_list.findIndex(x => x.Account == accountId);
+            if ( searchIndex >=  0 ){
+                console.log(this.admin_list[searchIndex]);
+                let selectAdmin = this.admin_list[searchIndex];
+                // this.input = {ID:selectAdmin.Account,Password:selectAdmin.Password,VerifyPassword:selectAdmin.Password,Name:selectAdmin.Name};
+                // this.db_datas =JSON.parse(selectAdmin.permition); 
+                // console.log(type(selectAdmin.permition) );
+                if ( confirm("delete account info ?") ){
+                    axios.post('/auth/account_remove', {ID : accountId}).then(response => {
+                            alert('remove success!');
+                            // this.input = {ID:'',Password:'',VerifyPassword:'',Name:''};
+                            this.getAdminlist();
+                        }, error => {
+                            alert(error);
+                        });
+                }            
+            }
+        },
+        onChange:function(){
+            // console.log(this.search_name);
+        },
+        modifyAccountSave:function(){
+            if ( confirm("apply account info ?") ){
+                axios.post('/auth/account_apply', {modify : true, input : this.input , auth : this.db_datas}).then(response => {
+                        alert('apply success!');
+                        this.modifyIndex = -1;
+                        this.input = {ID:'',Password:'',VerifyPassword:'',Name:''};
+                        this.getAdminlist();
+                    }, error => {
+                        alert(error);
+                    });
+            }  
+        },
+        modifyAccount:function(){
+            let selectAdmin = this.admin_list[this.modifyIndex];
+            if ( selectAdmin.Account != this.input.ID ){
+                alert('The ID has been changed.');
+                return;
+            }
+            if ( this.input.Password != this.input.VerifyPassword){
+                alert('Please check your password');
+                return;
+            }
+            console.log(this.input.Password);
+            if ( this.input.Password != '') {
+                if ( confirm("change password ?") ){
+                    this.modifyAccountSave();
+                }
+                return;
+            }
+            this.modifyAccountSave();
+        },
+        onApplyAccount:function(){
+            if ( this.modifyIndex != -1 ){
+                this.modifyAccount();
+                return ;
+            }
+            if (this.input.ID ==='' || this.input.Password ==='' || this.input.VerifyPassword ==='' || this.input.Name ==='' ){
+                alert('Field is empty');
+                return;
+            }
+            if ( this.input.Password != this.input.VerifyPassword){
+                alert('Please check your password');
+                return;
+            }
+
+            if ( confirm("apply account info ?") ){
+                axios.post('/auth/account_apply', {modify : false, input : this.input , auth : this.db_datas}).then(response => {
+                        alert('apply success!');
+                        this.modifyIndex =-1;
+                        this.input = {ID:'',Password:'',VerifyPassword:'',Name:''};
+                        this.getAdminlist();
+                    }, error => {
+                        alert(error);
+                    });
+            }            
+        },
+        getAdminlist:function(){
+            axios.post('/auth/account_list').then(response => {
+                        // console.log(response);
+                        this.admin_list = JSON.parse(response.data.data);
+                        this.admin_columns = JSON.parse(response.data.column);
+                    }, error => {
+                        alert(error);
+                    });
+        }
+    },
+    mounted : function(){
+        this.getAdminlist();
+    },    
+    computed: {
+      CheckData() {
+        return this.db_columns.length > 0;
+      }
+    }
+    })
+</script>
+{{end}}
+
+<!-- array deep copy https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript -->

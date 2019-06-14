@@ -1,0 +1,92 @@
+<html>
+<head>
+        <link rel="icon" href="static/icon/favicon.ico">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+  
+        <script src="https://unpkg.com/vue"></script>    
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+        <link rel="stylesheet" href="static/css/login.css" type="text/css">
+  
+</head>
+
+<body>
+    <div id ='Login' >    
+    <section >
+        <div class="container">
+            <div class="baslik">
+                <b style="font-size: 101px; text-align: center; margin-bottom: -21px; display: block;color:#070707">WINNING DERBY</b>
+                <span style="font-size: 19px; text-align: center; display: block; margin-bottom: 25px;color:#070707">GM Tool</span>
+            </div>
+            <section>
+                <div class="arkalogin">
+                    <div class="loginbaslik">Admin Login</div>
+                    <!-- <hr style="border: 1px solid #ccc;"> -->
+                    <input class="giris" type="text" name="kadi" v-model:ref="userid" placeholder="User">
+                    <input class="giris" type="password" name="sifre" v-model:ref="pass" placeholder="Password">
+                    <button class="butonlogin" v-on:click="onlogin">Login</button>
+                </div>
+            </section><br>
+
+        </div>
+    </section>
+    </div>
+
+</body>
+
+</html>
+
+
+<script>
+    var cLoginVm = new Vue({
+            delimiters: ['[[', ']]'],
+            el: '#Login',
+            data: {
+                userid :'',
+                pass:'',
+            },
+            methods: {
+                onlogin: function (e) {
+                    axios.post('/login_account', {method : 'auth',id: this.userid, pass : this.pass}).then(response => {
+                        window.location.href='/auth/user';
+                        // let result = JSON.parse(response.data);
+                        // if ( result.result ){
+                        //     window.location.href='/user';
+                        // }
+                        // else {
+                        //     alert('login error . check id and password');
+                        // }
+                        //팝업 사라짐
+                    }, error => {
+                        alert(error);
+                    });
+                },
+                onnewaccount: function (e) {
+                    // console.log(this.add_id); // "A"
+                    // console.log(e.targetVM === this); // true
+                    axios.post('/login_account', {method : 'new_account',id: this.add_id, pass : this.add_pass}).then(response => {
+                        // console.log(response);
+                        //팝업 사라짐
+                        this.showModal = false;
+                    }, error => {
+                        console.log(error);
+                    });
+                },
+                onPopup: function (e) {
+                    this.add_id = '';
+                    this.add_pass ='';
+                //팝업 사라짐
+                    this.showModal = true;
+                },
+              },
+              mounted : function()
+              {
+                    // this.servers = JSON.parse(strServers);
+                    // this.selectedserver = this.servers[0];
+              }
+    });    
+</script>

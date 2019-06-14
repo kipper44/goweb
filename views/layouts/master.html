@@ -1,0 +1,19 @@
+<!doctype html>
+
+<html>
+    <head>
+        <title>{{.title}}</title>
+        {{include "layouts/head"}}
+        {{template "head" .}}
+    </head>
+
+    <body>
+        {{include "layouts/menu"}}
+        <div id="content">
+            {{template "content" .}}
+        </div>
+
+    </body>
+</html>
+{{include "layouts/footer"}}
+{{template "script" .}}

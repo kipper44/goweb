@@ -1,0 +1,152 @@
+{{define "head"}}
+<!-- <link rel="stylesheet" href="static/css/double_screen.css" type="text/css"> -->
+<style>
+.selected {background: #41c69e;}
+</style>
+{{end}}
+
+{{define "content"}}
+<div id ='Statistcs_Dia'>
+    <legend class="" >{{.Name}}</legend>
+    <br>
+    <div class="form-group">
+            <div class="row" style="width:600px"> 
+                <div class="col">
+                    <div class="input-group date float-right" id="datetimepicker1" data-target-input="nearest">
+                            <input type="text" class="form-control datetimepicker-input" data-target="#datetimepicker1" />
+                            <div class="input-group-append" data-target="#datetimepicker1" data-toggle="datetimepicker">
+                              <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                            </div>
+                    </div>     
+                </div>
+                <div>-</div>
+                <div class="col">
+                    <div class="input-group date float-right" id="datetimepicker2" data-target-input="nearest">
+                            <input type="text" class="form-control datetimepicker-input" data-target="#datetimepicker2" />
+                            <div class="input-group-append" data-target="#datetimepicker2" data-toggle="datetimepicker">
+                              <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                            </div>
+                    </div>     
+                </div>
+                <div class="input-group-append">
+                        <button class="btn btn-secondary" type="button" v-on:click="onSearch" placeholder="Search">
+                        <i class="fa fa-search"></i>
+                        </button>
+                </div>
+            </div>
+        </div>
+    <br>
+    <div>
+        <table class="table table-sm table-hover" id='user_tbl'>
+            <thead>
+            <tr>
+                <th v-for="key in db_columns" >
+                [[ key ]] 
+                </th>
+            </tr>
+            </thead>  
+            <tbody>
+                <tr v-for="(entry,index) in db_datas" >
+                    <td v-for="key in db_columns">
+                        <div> [[ entry[key] ]] </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+ 
+    <!-- <span>선택함: [[ search_name ]]</span>
+    <br>
+    <span>[[ db_datas ]]</span> -->
+</div>    
+{{end}}
+
+{{define "script"}}
+<script type="text/javascript">
+// function getDeaultDueDate(){
+//     let cur_time =new Date();//.toISOString().slice(0,10);
+//     cur_time.setDate(cur_time.getDate() + 30);
+//     targetDate = cur_time.toISOString().slice(0,10);
+//     // console.log(targetDate);
+//     return cur_time;
+// }
+$(function () {
+    $('.datetimepicker').datetimepicker();
+    initDateTime();
+});
+function initDateTime(){
+    // $('#datetimepicker1').datetimepicker('date', moment('11/21/2018', 'MM/DD/YYYY') );
+    let cur_time =new Date();//.toISOString().slice(0,10);
+    // cur_time.setDate(cur_time.getDate() + 30);
+    var targetDate = cur_time.toISOString().slice(0,10);
+
+    $('#datetimepicker1').datetimepicker('date', moment(targetDate+ "00:00:00", 'YYYY-MM-DD HH:mm:ss') );
+    $('#datetimepicker2').datetimepicker('date', moment(targetDate+ " 23:59:00", 'YYYY-MM-DD HH:mm:ss') );
+
+}
+
+
+
+</script>
+<script> 
+    var rowColor ;
+    var mailTo =[];
+    var cSendMailVm = new Vue({
+    delimiters: ['[[', ']]'],
+    el: '#Statistcs_Dia',
+    data: {
+        selectDia: 'Dia55'
+        ,searchText :''
+        ,db_columns : []
+        ,db_datas :{}
+    },
+    methods: {
+        onChange:function(){
+            // console.log(this.search_name);
+        },
+        onSearch:function(){
+            // console.log(this.search_name);
+            var startDate = $("#datetimepicker1").data("datetimepicker").date();
+            var endDate = $("#datetimepicker2").data("datetimepicker").date();
+                // console.log(selectedDate.format('YYYY-MM-DD'));
+            // if ( startDate.format('YYYY-MM-DD') == endDate.format('YYYY-MM-DD') || startDate > endDate ){
+            if ( startDate > endDate ){
+                //alert(startDate.format('YYYY-MM-DD'));
+                //alert(endDate.format('YYYY-MM-DD'));
+                alert("invalid search date");
+                return;
+            }
+
+            axios.post('/auth/stattistics_dai_search', {start:startDate.format('YYYY-MM-DD HH:mm:ss'), end :endDate.format('YYYY-MM-DD HH:mm:ss')}).then(response => {
+                        console.log(response);
+                        data_ok = true;
+                        this.db_datas = JSON.parse(response.data.data);
+                        this.db_columns = JSON.parse(response.data.column);
+
+                    }).catch( error => {
+                        alert(error.response.data.reason);
+                    });            
+        },
+        setDefaultDueDate:function(){
+            // let cur_time = getDeaultDueDate()
+            // targetDate = cur_time.toISOString().slice(0,10);
+            // console.log(targetDate);
+            // this.reward.dueDate= targetDate;
+        }
+
+    },
+    computed: {
+      CheckData() {
+        return this.db_columns.length > 0;
+      }
+    },
+    mounted : function(){
+        this.setDefaultDueDate();
+
+
+    }
+
+    })
+</script>
+{{end}}
+

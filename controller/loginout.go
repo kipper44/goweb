@@ -163,13 +163,14 @@ func LogOut(ctx *gin.Context) {
 	user := session.Get("user")
 	if user == nil {
 		// ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid session token"})
-		ctx.Redirect(http.StatusMovedPermanently, "/")
+		// ctx.Redirect(http.StatusMovedPermanently, "/")
+		ctx.Redirect(http.StatusTemporaryRedirect, "/")
 	} else {
 		log.Println(user)
 		session.Delete("user")
 		session.Save()
 		// ctx.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
-		ctx.Redirect(http.StatusMovedPermanently, "/")
+		ctx.Redirect(http.StatusTemporaryRedirect, "/")
 	}
 }
 

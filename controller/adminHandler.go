@@ -84,7 +84,12 @@ func AdminUpdateProcess(input map[string]interface{}, authority string, adminUse
 	DB := utils.GetAdmin()
 	defer DB.Close()
 	if passWd != "" {
-		DB.Model(&models.GmAccount{}).Where("id = ?", ID).Update(models.GmAccount{Name: name, Permition: authority, Password: passWd})
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(passWd), bcrypt.DefaultCost)
+		if err != nil {
+			panic(err)
+		}
+
+		DB.Model(&models.GmAccount{}).Where("id = ?", ID).Update(models.GmAccount{Name: name, Permition: authority, Password: string(hashedPassword)})
 	} else {
 		DB.Model(&models.GmAccount{}).Where("id = ?", ID).Update(models.GmAccount{Name: name, Permition: authority})
 	}

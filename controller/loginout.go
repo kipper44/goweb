@@ -13,6 +13,8 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // const seesionTime = 120
@@ -120,7 +122,17 @@ func PostLogin(ctx *gin.Context) {
 	DB.Where("id=?", id).Find(&admin)
 	fmt.Println(admin)
 
-	if pass == admin.Password {
+	// hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(string(hashedPassword))
+
+	// Comparing the password with the hash
+	err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(pass))
+
+	// if pass == admin.Password {
+	if err == nil {
 		session.Set("user", admin.Id) //In real world usage you'd set this to the users ID
 		// session.Set("Expires", time.Now().Add(120*time.Second))
 		session.Options(sessions.Options{

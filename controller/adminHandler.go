@@ -8,6 +8,7 @@ import (
 	"newoo/WinningDerbyAdmin/utils"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func AdminController(ctx *gin.Context) {
@@ -64,7 +65,12 @@ func AdminCreateProcess(input map[string]interface{}, authority string, adminUse
 	name := input["Name"].(string)
 	DB := utils.GetAdmin()
 	defer DB.Close()
-	newLog := models.GmAccount{Account: ID, Password: passWd, Name: name, Permition: authority}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(passWd), bcrypt.DefaultCost)
+	if err != nil {
+		panic(err)
+	}
+	// fmt.Println(string(hashedPassword))
+	newLog := models.GmAccount{Account: ID, Password: string(hashedPassword), Name: name, Permition: authority}
 	DB.Create(&newLog)
 
 	adminCreateLog(ID, adminUser)
